@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Expression Library</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .container-bg {
+            background-color: #f7f9fc;
+        }
+        .english-text {
+            color: #1e3a8a; /* A dark blue */
+        }
+        .portuguese-text {
+            color: #166534; /* A dark green */
+        }
+        .interactive-card {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease-in-out;
+        }
+        .guess-box:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+        }
+        .button-primary {
+            background-color: #4a90e2;
+            color: white;
+            transition: background-color 0.2s;
+        }
+        .button-primary:hover {
+            background-color: #357bd8;
+        }
+        .button-secondary {
+            background-color: #e2e8f0;
+            color: #4a5568;
+            transition: background-color 0.2s;
+        }
+        .button-secondary:hover {
+            background-color: #cbd5e1;
+        }
+        .correct-answer {
+            color: #16a34a;
+        }
+        .incorrect-answer {
+            color: #dc2626;
+        }
+        .drag-word {
+            cursor: grab;
+            user-select: none;
+            transition: transform 0.2s;
+        }
+        .drag-word:active {
+            transform: scale(1.05);
+            cursor: grabbing;
+        }
+        .drop-zone-word {
+            min-width: 60px;
+        }
+        .drop-zone-correct {
+            border-color: #16a34a;
+            background-color: #d1f7d1;
+        }
+        .drop-zone-incorrect {
+            border-color: #dc2626;
+            background-color: #f7d1d1;
+        }
+    </style>
+</head>
+<body class="container-bg min-h-screen flex items-center justify-center p-4 md:p-8">
+
+    <div id="main-container" class="w-full max-w-4xl p-6 md:p-10 interactive-card rounded-xl shadow-2xl">
+        <h1 class="text-3xl md:text-4xl font-bold text-center english-text mb-6">Learn English Expressions</h1>
+        
+        <div id="library-section">
+            <p class="text-center text-lg md:text-xl text-gray-700 mb-6">Select an expression to learn:</p>
+            <div id="expression-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Expression buttons will be dynamically added here -->
+            </div>
+        </div>
+
+        <div id="content" class="space-y-8 hidden">
+            <!-- Initial Introduction -->
+            <div id="intro-section">
+                <p class="text-center text-lg md:text-xl text-gray-700">Let's learn a new expression through a real-life situation!</p>
+            </div>
+
+            <!-- Situation Section -->
+            <div id="situation-section" class="interactive-card p-6 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-semibold mb-4 text-center">The Situation</h2>
+                <div class="mb-4 text-center">
+                    <p id="english-situation" class="text-lg mb-2 english-text"></p>
+                    <p id="portuguese-situation" class="text-lg portuguese-text"></p>
+                </div>
+                <p class="text-center text-xl font-medium text-gray-800 mb-4">Based on this situation, what is the most common expression you would use?</p>
+
+                <div class="flex flex-col items-center">
+                    <input type="text" id="guess-input" placeholder="Type your guess here..." class="w-full md:w-2/3 px-4 py-3 rounded-lg border-2 border-gray-300 focus:ring-2 guess-box mb-4 text-center">
+                    <button id="guess-button" class="button-primary px-6 py-3 rounded-full font-semibold shadow-lg hover:scale-105 transform">Guess the Expression</button>
+                    <p id="guess-feedback" class="mt-4 font-semibold"></p>
+                </div>
+
+                <div class="text-center mt-6">
+                    <button id="back-to-library-btn-1" class="back-to-library-btn button-secondary px-6 py-3 rounded-full font-semibold shadow-lg hover:scale-105 transform">Back to Library</button>
+                </div>
+            </div>
+
+            <!-- Hint and attempts counter -->
+            <div id="hint-section" class="text-center text-gray-600 mt-4 hidden">
+                <p id="attempts-left"></p>
+                <p id="hint-text" class="mt-2"></p>
+            </div>
+
+            <!-- Answer, Synonyms, and Explanation Section -->
+            <div id="answer-section" class="interactive-card p-6 rounded-xl shadow-lg hidden">
+                <p class="text-xl font-bold mb-4 correct-answer text-center"><span id="correct-answer-text"></span></p>
+
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-lg font-bold mb-2 english-text">Common Synonyms</h3>
+                        <div class="p-4 bg-gray-100 rounded-lg">
+                            <ul id="synonyms-list" class="list-disc list-inside space-y-1">
+                            </ul>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold mb-2 english-text">Explanation</h3>
+                        <p id="explanation-text" class="p-4 bg-gray-100 rounded-lg text-gray-800"></p>
+                    </div>
+                </div>
+                <div class="text-center mt-6">
+                    <button id="back-to-situation-button" class="button-secondary px-6 py-3 rounded-full font-semibold shadow-lg hover:scale-105 transform mr-4">Back</button>
+                    <button id="back-to-library-btn-2" class="back-to-library-btn button-secondary px-6 py-3 rounded-full font-semibold shadow-lg hover:scale-105 transform mr-4">Back to Library</button>
+                    <button id="next-to-portuguese-button" class="button-primary px-6 py-3 rounded-full font-semibold shadow-lg hover:scale-105 transform">Next</button>
+                </div>
+            </div>
+
+            <!-- Portuguese Translation Section -->
+            <div id="portuguese-section" class="interactive-card p-6 rounded-xl shadow-lg hidden">
+                <h2 class="text-2xl font-semibold mb-4 text-center english-text">Now, how do you say this in Brazilian Portuguese?</h2>
+                <p class="text-center text-gray-600 mb-4">(You have 2 attempts)</p>
+                <div class="flex flex-col items-center">
+                    <input type="text" id="portuguese-input" placeholder="Type your answer here..." class="w-full md:w-2/3 px-4 py-3 rounded-lg border-2 border-gray-300 focus:ring-2 guess-box mb-4 text-center">
+                    <button id="portuguese-button" class="button-primary px-6 py-3 rounded-full font-semibold shadow-lg hover:scale-105 transform">Check Portuguese Answer</button>
+                    <p id="portuguese-feedback" class="mt-4 font-semibold"></p>
+                </div>
+                
+                <!-- Portuguese Rephrase Exercise Section -->
+                <div id="portuguese-rephrase-section" class="space-y-8 mt-8 hidden">
+                    <div class="p-4 border rounded-xl">
+                        <h3 class="text-xl font-semibold mb-4">Rephrase the Sentence</h3>
+                        <p id="pt-rephrase-prompt" class="mb-4"></p>
+                        <p id="pt-rephrase-sentence" class="mb-4 italic text-gray-700"></p>
+                        <div class="flex flex-col items-center">
+                            <input type="text" id="pt-rephrase-input" placeholder="Your new sentence..." class="w-full md:w-2/3 px-4 py-3 rounded-lg border-2 border-gray-300 mb-4 text-center">
+                            <button id="pt-rephrase-check" class="bg-gray-500 text-white px-4 py-2 rounded-full font-semibold">Check Answer</button>
+                            <p id="pt-rephrase-feedback" class="mt-2 font-semibold"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-6">
+                    <button id="back-to-answer-button" class="button-secondary px-6 py-3 rounded-full font-semibold shadow-lg hover:scale-105 transform mr-4">Back</button>
+                    <button id="back-to-library-btn-3" class="back-to-library-btn button-secondary px-6 py-3 rounded-full font-semibold shadow-lg hover:scale-105 transform mr-4">Back to Library</button>
+                    <button id="next-to-tip-button" class="button-primary px-6 py-3 rounded-full font-semibold shadow-lg hover:scale-105 transform hidden">Next</button>
+                </div>
+            </div>
+
+            <!-- Association and Tip Section -->
+            <div id="tip-section" class="interactive-card p-6 rounded-xl shadow-lg hidden">
+                <h2 class="text-2xl font-semibold mb-4 text-center english-text">Association and Tip</h2>
+                <div class="p-4 bg-gray-100 rounded-lg text-center">
+                    <p id="tip-text" class="mb-4 text-gray-800"></p>
+                    <p id="pt-tip-text" class="portuguese-text font-bold text-lg"></p>
+                </div>
+                <div class="text-center mt-6">
+                    <button id="back-to-portuguese-button" class="button-secondary px-6 py-3 rounded-full font-semibold shadow-lg hover:scale-105 transform mr-4">Back</button>
+                    <button id="back-to-library-btn-4" class="back-to-library-btn button-secondary px-6 py-3 rounded-full font-semibold shadow-lg hover:scale-105 transform mr-4">Back to Library</button>
+                    <button id="next-to-exercises-button" class="button-primary px-8 py-4 rounded-full font-bold shadow-lg hover:scale-105 transform">Continue to Exercises</button>
+                </div>
+            </div>
+
+            <!-- Main Exercises Section (English) -->
+            <div id="exercises-section" class="interactive-card p-6 rounded-xl shadow-lg hidden">
+                <h2 class="text-2xl font-semibold mb-6 text-center english-text">Practice Exercises</h2>
+
+                <!-- Sentence Builder -->
+                <div class="mb-8 p-4 border rounded-xl">
+                    <h3 class="text-xl font-semibold mb-4">1. Sentence Builder</h3>
+                    <p class="mb-4">Arrange the words in the correct order to form a sentence using the expression.</p>
+                    <div id="word-bank" class="flex flex-wrap items-center justify-center space-x-2 md:space-x-4 mb-6">
+                        <!-- Words will be dynamically added here -->
+                    </div>
+                    <div id="drop-zone" class="w-full h-12 bg-gray-100 border-2 border-dashed border-gray-400 rounded-lg flex items-center justify-center space-x-2 md:space-x-4 p-2 text-gray-600 text-center">
+                        Drop words here
+                    </div>
+                    <div class="text-center mt-4">
+                        <button id="sentence-check" class="bg-gray-500 text-white px-4 py-2 rounded-full font-semibold">Check Sentence</button>
+                        <p id="sentence-feedback" class="mt-2 font-semibold"></p>
+                    </div>
+                </div>
+
+                <!-- Contextual Multiple Choice -->
+                <div class="mb-8 p-4 border rounded-xl">
+                    <h3 class="text-xl font-semibold mb-4">2. Contextual Multiple Choice</h3>
+                    <p id="mc-prompt" class="mb-4"></p>
+                    <div id="mc-options" class="space-y-4">
+                        <!-- Options will be dynamically added here -->
+                    </div>
+                    <div class="text-center mt-4">
+                        <button id="mc-check" class="bg-gray-500 text-white px-4 py-2 rounded-full font-semibold">Check Answer</button>
+                        <p id="mc-feedback" class="mt-2 font-semibold"></p>
+                    </div>
+                </div>
+
+                <!-- Rephrase the Sentence -->
+                <div class="mb-8 p-4 border rounded-xl">
+                    <h3 class="text-xl font-semibold mb-4">3. Rephrase the Sentence</h3>
+                    <p id="rephrase-prompt" class="mb-4 english-text font-medium text-lg"></p>
+                    <p id="rephrase-sentence" class="mb-4 italic text-gray-700"></p>
+                    <div class="flex flex-col items-center">
+                        <input type="text" id="rephrase-input" placeholder="Your new sentence..." class="w-full md:w-2/3 px-4 py-3 rounded-lg border-2 border-gray-300 mb-4 text-center">
+                        <button id="rephrase-check" class="bg-gray-500 text-white px-4 py-2 rounded-full font-semibold">Check Answer</button>
+                        <p id="rephrase-feedback" class="mt-2 font-semibold"></p>
+                    </div>
+                </div>
+
+                <!-- Dialogue Challenge -->
+                <div class="mb-8 p-4 border rounded-xl">
+                    <h3 class="text-xl font-semibold mb-4">4. Dialogue Challenge</h3>
+                    <p id="dialogue-prompt" class="mb-4 english-text font-medium text-lg"></p>
+                    <div class="bg-gray-100 p-4 rounded-lg">
+                        <p id="dialogue-context"></p>
+                        <p><strong>You:</strong> <input type="text" id="dialogue-input" placeholder="Your response here..." class="w-full mt-2 px-3 py-2 rounded-lg border-2 border-gray-300"></p>
+                    </div>
+                    <div class="text-center mt-4">
+                        <button id="dialogue-check" class="bg-gray-500 text-white px-4 py-2 rounded-full font-semibold">Check Response</button>
+                        <p id="dialogue-feedback" class="mt-2 font-semibold"></p>
+                    </div>
+                </div>
+
+                <div class="text-center mt-6">
+                    <button id="back-to-tip-button" class="button-secondary px-6 py-3 rounded-full font-semibold shadow-lg hover:scale-105 transform mr-4">Back</button>
+                    <button id="back-to-library-btn-5" class="back-to-library-btn button-secondary px-6 py-3 rounded-full font-semibold shadow-lg hover:scale-105 transform">Back to Library</button>
+                </div>
+
+                <!-- Custom alert box -->
+                <div id="custom-alert" class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                    <div class="bg-white p-6 rounded-lg shadow-xl text-center">
+                        <p id="alert-message" class="text-lg mb-4"></p>
+                        <button id="alert-ok" class="button-primary px-4 py-2 rounded-full font-semibold">OK</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Custom alert function
+        function customAlert(message) {
+            document.getElementById('alert-message').textContent = message;
+            document.getElementById('custom-alert').classList.remove('hidden');
+        }
+
+        document.getElementById('alert-ok').addEventListener('click', () => {
+            document.getElementById('custom-alert').classList.add('hidden');
+        });
+
+        // The main data for the expressions, without the answers.
+        const expressions = [
+            {
+                name: "Com pressa",
+                englishSituation: "It’s 8:45 AM. Your most important presentation of the year is at 9:00 AM. You’re racing out the door, briefcase in hand, but you suddenly remember your laptop is still on the kitchen counter. There’s no time to go back. Your heart is pounding, you're breathing fast, and you feel a huge rush to get to the meeting on time.",
+                portugueseSituation: "São 8h45. A sua apresentação mais importante do ano é às 9h. Você está saindo correndo de casa, com a pasta na mão, mas de repente se lembra que seu notebook ainda está no balcão da cozinha. Não há tempo para voltar. Seu coração está disparado, você está ofegante, e sente uma enorme pressa para chegar à reunião a tempo.",
+                correctAnswer: "pressed for time",
+                portugueseCorrectAnswers: ["apertado de tempo", "estar com pressa", "estar com pressa"],
+                ptRephraseAnswer: "Eu estava apertado de tempo para terminar o projeto.",
+                rephraseAnswer: "I was pressed for time to finish the project.",
+                dialogueAnswer: "Sorry, I'm a bit pressed for time right now.",
+                synonyms: ["I was in a rush.", "I was short on time.", "I was running out of time."],
+                explanation: "This expression means that you have a very limited amount of time to do something, often causing you to feel stressed or rushed. It's a common and polite way to explain that you were busy and couldn't complete a task or a request.",
+                ptRephrasePrompt: "Rewrite the following sentence using a Portuguese equivalent of 'I was pressed for time'.",
+                ptRephraseSentence: "Eu tive de ir embora, pois estava com muita pressa.",
+                tipText: "Think of a clothes press or iron pressing down on you, making you feel squeezed and hurried. That's exactly how it feels when you are 'pressed for time.'",
+                ptTipText: "Essa expressão significa 'não ter tempo', 'estar com pressa' ou 'estar apertado de tempo'.",
+                sentenceBuilderWords: ["I'm", "pressed", "for", "time"],
+                sentenceBuilderOrder: ["I'm", "pressed", "for", "time"],
+                mcPrompt: "Choose the sentence that correctly uses the expression 'pressed for time.'",
+                mcOptions: [
+                    "a) The button was pressed for time.",
+                    "b) I was pressed for time and couldn't answer your call.",
+                    "c) We pressed the time to start the game."
+                ],
+                mcCorrectAnswer: "b) I was pressed for time and couldn't answer your call.",
+                rephrasePrompt: "Rewrite the following sentence using the expression 'pressed for time.'",
+                rephraseSentence: "I was in a rush to finish the project.",
+                rephraseCorrectAnswer: "I was pressed for time to finish the project.",
+                dialoguePrompt: "Read the dialogue and write a polite response using 'pressed for time.'",
+                dialogueContext: "<strong>Friend:</strong> 'Hey! Do you have a second? I need some help with my homework.'",
+            },
+            {
+                name: "Boa sorte!",
+                englishSituation: "It's the night of a school play. Your best friend is about to go on stage for the first time, and they're really nervous. You want to wish them good luck without actually saying 'good luck,' because actors and performers often consider that to be bad luck.",
+                portugueseSituation: "É a noite de uma peça de teatro da escola. Sua melhor amiga está prestes a subir no palco pela primeira vez e está muito nervosa. Você quer desejar-lhe boa sorte sem realmente dizer 'boa sorte', porque atores e artistas costumam considerar isso má sorte.",
+                correctAnswer: "break a leg",
+                portugueseCorrectAnswers: ["quebre a perna", "arrebente", "arrase", "manda ver"],
+                ptRephraseAnswer: "Eu disse para o ator 'quebrar a perna' antes da sua estreia.",
+                rephraseAnswer: "My friend told me to 'break a leg' before my concert.",
+                dialogueAnswer: "Break a leg!",
+                synonyms: ["Good luck!", "Best wishes!"],
+                explanation: "This is a common and superstitious way to wish someone good luck, especially in the context of a performance or a new endeavor. It's used to avoid tempting fate by explicitly saying 'good luck.'",
+                ptRephrasePrompt: "Rewrite the following sentence using a Portuguese equivalent of 'Break a leg!'.",
+                ptRephraseSentence: "Eu desejei boa sorte ao ator antes de ele entrar no palco.",
+                tipText: "The expression comes from the world of theatre. One theory is that actors wished for a broken leg so the show would go on and they wouldn't be replaced. 'Break a leg' is a playful way to hope for a successful performance.",
+                ptTipText: "A expressão significa 'boa sorte' em um contexto de teatro ou desempenho.",
+                sentenceBuilderWords: ["a", "leg", "break"],
+                sentenceBuilderOrder: ["break", "a", "leg"],
+                mcPrompt: "In which situation would you most likely say 'Break a leg!'?",
+                mcOptions: [
+                    "a) When someone is about to go on a long car trip.",
+                    "b) When someone is about to take a test.",
+                    "c) When someone is about to go on stage for a play."
+                ],
+                mcCorrectAnswer: "c) When someone is about to go on stage for a play.",
+                rephrasePrompt: "Rewrite the following sentence to use the expression 'Break a leg!'.",
+                rephraseSentence: "My friend wished me good luck before my concert.",
+                rephraseCorrectAnswer: "My friend told me to 'break a leg' before my concert.",
+                dialoguePrompt: "Read the dialogue and respond with 'Break a leg!'",
+                dialogueContext: "<strong>Friend:</strong> 'I'm so nervous about my first dance recital tonight.'",
+            },
+            {
+                name: "Indisposto",
+                englishSituation: "You wake up one morning with a slight headache, a runny nose, and a general feeling of tiredness. It's not bad enough to stay home from work or school, but you definitely don't feel 100%. When a coworker asks how you are, you don't want to complain, but you also don't want to say you feel great.",
+                portugueseSituation: "Você acorda uma manhã com uma leve dor de cabeça, um nariz escorrendo e uma sensação geral de cansaço. Não é grave o suficiente para ficar em casa do trabalho ou da escola, mas você definitivamente não se sente 100%. Quando um colega de trabalho pergunta como você está, você não quer reclamar, mas também não quer dizer que se sente ótimo.",
+                correctAnswer: "under the weather",
+                portugueseCorrectAnswers: ["indisposto", "doente", "meio doente"],
+                ptRephraseAnswer: "Ele estava se sentindo indisposto.",
+                rephraseAnswer: "I'm feeling a bit under the weather today.",
+                dialogueAnswer: "I'm feeling a bit under the weather.",
+                synonyms: ["Feeling unwell.", "A little sick.", "Off-color."],
+                explanation: "This idiom is a polite and common way to say that you're not feeling well, but without implying a serious illness. It's often used when you have mild cold symptoms or a general feeling of being unwell.",
+                ptRephrasePrompt: "Rewrite the following sentence using a Portuguese equivalent of 'I'm feeling under the weather.'",
+                ptRephraseSentence: "Ele não estava se sentindo bem hoje.",
+                tipText: "The phrase 'under the weather' comes from old sailing days. When a sailor was seasick, they would be sent 'under the weather' or below deck to feel better. Now, it just means you're feeling a bit sick on land!",
+                ptTipText: "Essa expressão significa 'estar indisposto', 'estar meio doente' ou 'não estar se sentindo bem'.",
+                sentenceBuilderWords: ["I'm", "feeling", "under", "the", "weather"],
+                sentenceBuilderOrder: ["I'm", "feeling", "under", "the", "weather"],
+                mcPrompt: "In which situation would you use 'under the weather'?",
+                mcOptions: [
+                    "a) When you have a severe, life-threatening illness.",
+                    "b) When you have a mild cold and don't feel great.",
+                    "c) When the weather outside is bad and you're feeling sad."
+                ],
+                mcCorrectAnswer: "b) When you have a mild cold and don't feel great.",
+                rephrasePrompt: "Rewrite the following sentence using the expression 'under the weather.'",
+                rephraseSentence: "I think I'm getting a cold.",
+                rephraseCorrectAnswer: "I'm feeling a bit under the weather.",
+                dialoguePrompt: "Read the dialogue and respond politely using 'under the weather.'",
+                dialogueContext: "<strong>Coworker:</strong> 'Hey, you seem a bit pale. Are you okay?'",
+            },
+            {
+                name: "Sinta-se à vontade",
+                englishSituation: "Your friend asks if they can use your phone to make a quick call. You've already finished your work and don't need your phone at the moment. You want to give them permission in a very polite and welcoming way, showing that you don't mind at all.",
+                portugueseSituation: "Seu amigo pergunta se pode usar seu celular para fazer uma ligação rápida. Você já terminou seu trabalho e não precisa do seu celular no momento. Você quer dar permissão a ele de uma forma muito educada e acolhedora, mostrando que não se importa nem um pouco.",
+                correctAnswer: "be my guest",
+                portugueseCorrectAnswers: ["sinta-se à vontade", "vá em frente"],
+                ptRephraseAnswer: "Eu disse ao meu amigo, 'sinta-se à vontade' para usar meu telefone.",
+                rephraseAnswer: "Be my guest, you can go ahead and eat the last piece of cake.",
+                dialogueAnswer: "Be my guest.",
+                synonyms: ["Go ahead.", "By all means.", "Of course."],
+                explanation: "This is a polite phrase used to give someone permission to do something, especially when it is something they might feel hesitant about asking for. It shows that you are happy for them to proceed and that they are welcome to do so.",
+                ptRephrasePrompt: "Rewrite the following sentence using a Portuguese equivalent of 'Be my guest.'",
+                ptRephraseSentence: "O anfitrião me disse para ficar à vontade e entrar na casa.",
+                tipText: "Imagine yourself as the host of a party. You want your guests to feel comfortable, so you would say, 'be my guest' to encourage them to relax and do as they please.",
+                ptTipText: "Essa expressão significa 'sinta-se à vontade', 'vá em frente' ou 'sirva-se'.",
+                sentenceBuilderWords: ["be", "my", "guest"],
+                sentenceBuilderOrder: ["be", "my", "guest"],
+                mcPrompt: "Choose the best response to the question, 'Can I borrow your pen?'",
+                mcOptions: [
+                    "a) Be my guest.",
+                    "b) I am your guest.",
+                    "c) It's my pen, so no."
+                ],
+                mcCorrectAnswer: "a) Be my guest.",
+                rephrasePrompt: "Rewrite the following sentence to use the expression 'be my guest.'",
+                rephraseSentence: "Go ahead and eat the last piece of cake.",
+                rephraseCorrectAnswer: "Be my guest, you can eat the last piece of cake.",
+                dialoguePrompt: "Read the dialogue and respond politely with 'be my guest.'",
+                dialogueContext: "<strong>Colleague:</strong> 'Would it be alright if I used your office to print a document?'",
+            },
+            {
+                name: "Estou morrendo de fome",
+                englishSituation: "You've been studying or working all day and haven't had a chance to eat anything since breakfast. Your stomach is making loud noises, you feel weak, and all you can think about is getting food. When your roommate asks if you want to get dinner, you want to express just how hungry you are.",
+                portugueseSituation: "Você estudou ou trabalhou o dia todo e não teve a chance de comer nada desde o café da manhã. Seu estômago está fazendo barulhos altos, você se sente fraco e tudo em que consegue pensar é em conseguir comida. Quando seu colega de quarto pergunta se você quer jantar, você quer expressar o quão faminto você está.",
+                correctAnswer: "starving",
+                portugueseCorrectAnswers: ["morrendo de fome", "faminto", "esfomeado"],
+                ptRephraseAnswer: "Eu preciso comer agora, pois estou morrendo de fome.",
+                rephraseAnswer: "I am starving after the workout.",
+                dialogueAnswer: "I am starving! What are we eating?",
+                synonyms: ["I'm ravenous.", "I could eat a horse.", "Famished."],
+                explanation: "This is a very common and informal way to say that you are extremely hungry. It's a hyperbolic expression, meaning you are so hungry that you feel like you are starving to death, but it's not meant to be taken literally.",
+                ptRephrasePrompt: "Rewrite the following sentence using a Portuguese equivalent of 'I'm starving.'",
+                ptRephraseSentence: "Eu preciso comer agora, porque estou com muita fome.",
+                tipText: "Think of the word 'starving' as a fun exaggeration. It's not literally true, but it perfectly describes that intense, urgent feeling of needing food.",
+                ptTipText: "Essa expressão significa 'estar faminto', 'estar morrendo de fome' ou 'estar com muita fome'.",
+                sentenceBuilderWords: ["I'm", "starving"],
+                sentenceBuilderOrder: ["I'm", "starving"],
+                mcPrompt: "Which of these is a synonym for 'I am starving'?",
+                mcOptions: [
+                    "a) I am full.",
+                    "b) I am thirsty.",
+                    "c) I am ravenous."
+                ],
+                mcCorrectAnswer: "c) I am ravenous.",
+                rephrasePrompt: "Rewrite the following sentence to use the expression 'I am starving.'",
+                rephraseSentence: "I am extremely hungry after the workout.",
+                rephraseCorrectAnswer: "I am starving after the workout.",
+                dialoguePrompt: "Read the dialogue and respond to the question with 'I am starving.'",
+                dialogueContext: "<strong>Friend:</strong> 'Hey, are you hungry? Do you want to grab a bite to eat?'",
+            },
+            {
+                name: "Eu sinto muito por você",
+                englishSituation: "Your friend tells you that they didn't get the job they worked so hard for and that they are feeling very disappointed. You want to express sympathy and let them know that you understand their feelings and are there for them.",
+                portugueseSituation: "Seu amigo te conta que não conseguiu o emprego pelo qual se esforçou tanto e que está se sentindo muito desapontado. Você quer expressar simpatia e fazer com que ele saiba que você entende os sentimentos dele e está lá para ele.",
+                correctAnswer: "I feel for you",
+                portugueseCorrectAnswers: ["eu sinto muito por você", "sinto muito por você"],
+                ptRephraseAnswer: "Eu sinto muito por você, meu amigo, que não conseguiu o emprego.",
+                rephraseAnswer: "I feel for you, going through such a difficult time.",
+                dialogueAnswer: "Oh no, I feel for you. That sounds exhausting.",
+                synonyms: ["I'm sorry to hear that.", "I understand what you're going through.", "My heart goes out to you."],
+                explanation: "This phrase is used to express sympathy and empathy for someone's unfortunate situation. It means that you feel compassion for their pain or sadness and wish to offer support.",
+                ptRephrasePrompt: "Rewrite the following sentence using a Portuguese equivalent of 'I feel for you.'",
+                ptRephraseSentence: "Eu sei que a situação é difícil e eu sinto muito por você.",
+                tipText: "The phrase 'I feel for you' is a powerful way to connect with someone's emotions. It's like saying, 'I can feel a bit of your pain, and I'm here for you.'",
+                ptTipText: "Essa expressão significa 'eu te entendo', 'eu te dou força' ou 'sinto muito por você'.",
+                sentenceBuilderWords: ["I", "feel", "for", "you"],
+                sentenceBuilderOrder: ["I", "feel", "for", "you"],
+                mcPrompt: "When is the best time to say 'I feel for you'?",
+                mcOptions: [
+                    "a) When someone tells you they won the lottery.",
+                    "b) When someone tells you they are sad about a loss.",
+                    "c) When you are trying to cheer someone up by telling a joke."
+                ],
+                mcCorrectAnswer: "b) When someone tells you they are sad about a loss.",
+                rephrasePrompt: "Rewrite the following sentence using the expression 'I feel for you.'",
+                rephraseSentence: "I am sorry that you are going through a difficult time.",
+                rephraseCorrectAnswer: "I feel for you, I am sorry you are going through a difficult time.",
+                dialoguePrompt: "Read the dialogue and express your sympathy with 'I feel for you.'",
+                dialogueContext: "<strong>Friend:</strong> 'I'm so exhausted. I've been working long hours all week and I'm just drained.'",
+            },
+            {
+                name: "Aguente firme",
+                englishSituation: "Your friend is going through a tough time with their final exams and is feeling overwhelmed and stressed. They are thinking about giving up. You want to give them some encouragement to keep going and not quit, even though it's difficult.",
+                portugueseSituation: "Seu amigo está passando por um momento difícil com as provas finais e está se sentindo sobrecarregado e estressado. Ele está pensando em desistir. Você quer dar a ele um encorajamento para continuar e não desistir, mesmo que seja difícil.",
+                correctAnswer: "hang in there",
+                portugueseCorrectAnswers: ["aguente firme", "não desista", "continue tentando"],
+                ptRephraseAnswer: "Continue estudando, aguente firme, e você vai passar.",
+                rephraseAnswer: "Hang in there, it's almost over!",
+                dialogueAnswer: "Hang in there, you're almost done!",
+                synonyms: ["Don't give up.", "Keep going.", "Stay strong."],
+                explanation: "This phrasal verb is a common way to encourage someone to persevere through a difficult situation. It is an informal and supportive way to tell someone to be patient and not give up when facing a challenge.",
+                ptRephrasePrompt: "Rewrite the following sentence using a Portuguese equivalent of 'Hang in there.'",
+                ptRephraseSentence: "É difícil, mas aguente firme e não desista.",
+                tipText: "Imagine you are holding on to a rope and a friend is cheering you on. They would tell you to 'hang in' there, meaning to keep holding on and not let go, even when it's tough.",
+                ptTipText: "Essa expressão significa 'aguente firme', 'não desista' ou 'continue tentando'.",
+                sentenceBuilderWords: ["hang", "in", "there"],
+                sentenceBuilderOrder: ["hang", "in", "there"],
+                mcPrompt: "What does 'Hang in there' mean?",
+                mcOptions: [
+                    "a) To give up on a task.",
+                    "b) To literally hang something on a wall.",
+                    "c) To persevere through a difficult situation."
+                ],
+                mcCorrectAnswer: "c) To persevere through a difficult situation.",
+                rephrasePrompt: "Rewrite the following sentence to use the expression 'hang in there.'",
+                rephraseSentence: "Keep going, you can finish your exams!",
+                rephraseCorrectAnswer: "Hang in there, you can finish your exams!",
+                dialoguePrompt: "Read the dialogue and give your friend some encouragement using 'hang in there.'",
+                dialogueContext: "<strong>Friend:</strong> 'I'm so tired of studying. I don't think I can get through all these final exams.'",
+            },
+            {
+                name: "Uma onda de atividade",
+                englishSituation: "You arrive at your office after a long holiday. Your inbox is full, the phone is ringing constantly, and your team is waiting for your input on three different projects. You need to describe this moment of intense, simultaneous work.",
+                portugueseSituation: "Você chega ao seu escritório após um longo feriado. Sua caixa de entrada está cheia, o telefone não para de tocar, e sua equipe está esperando a sua opinião sobre três projetos diferentes. Você precisa descrever esse momento de trabalho intenso e simultâneo.",
+                correctAnswer: "a flurry of activity",
+                portugueseCorrectAnswers: ["uma onda de atividade", "um monte de coisas para fazer"],
+                ptRephraseAnswer: "Houve uma onda de atividade depois da reunião.",
+                rephraseAnswer: "After the meeting, there was a flurry of activity.",
+                dialogueAnswer: "I've had a flurry of activity this morning.",
+                synonyms: ["a sudden burst of activity", "a rush of work", "a series of rapid actions"],
+                explanation: "This expression describes a situation where many things happen at the same time or in a short period. It suggests a burst of energy and movement, like a sudden storm or a group of birds taking flight.",
+                ptRephrasePrompt: "Rewrite the following sentence using a Portuguese equivalent of 'a flurry of activity.'",
+                ptRephraseSentence: "Houve um monte de coisas para fazer depois da reunião.",
+                tipText: "Think of a 'flurry' of snow—it's a sudden, light gust of snowflakes. A 'flurry of activity' is a similar sudden, light burst of action and movement.",
+                ptTipText: "Essa expressão significa 'uma onda de atividade', 'um monte de coisas para fazer' ou 'uma série de ações rápidas'.",
+                sentenceBuilderWords: ["a", "flurry", "of", "activity"],
+                sentenceBuilderOrder: ["a", "flurry", "of", "activity"],
+                mcPrompt: "In which situation would you most likely use 'a flurry of activity'?",
+                mcOptions: [
+                    "a) When you are quietly reading a book.",
+                    "b) When a lot of people are rushing to get work done at the same time.",
+                    "c) When the weather is calm and still."
+                ],
+                mcCorrectAnswer: "b) When a lot of people are rushing to get work done at the same time.",
+                rephrasePrompt: "Rewrite the following sentence using the expression 'a flurry of activity.'",
+                rephraseSentence: "The office was suddenly busy with a lot of work after the announcement.",
+                rephraseCorrectAnswer: "After the announcement, the office had a flurry of activity.",
+                dialoguePrompt: "Read the dialogue and respond by describing the morning with 'a flurry of activity.'",
+                dialogueContext: "<strong>Colleague:</strong> 'Hey, how was your morning? It looked pretty busy over here.'",
+            },
+            {
+                name: "Imediatamente",
+                englishSituation: "Your boss calls you and asks you to come to their office. The tone of their voice suggests it is very urgent and you need to go there as quickly as possible, without any delay.",
+                portugueseSituation: "Seu chefe te liga e pede para você ir ao escritório dele. O tom de voz dele sugere que é muito urgente e que você precisa ir para lá o mais rápido possível, sem qualquer atraso.",
+                correctAnswer: "on the double",
+                portugueseCorrectAnswers: ["imediatamente", "agora mesmo", "para ontem"],
+                ptRephraseAnswer: "Ele queria o relatório para ontem.",
+                rephraseAnswer: "The boss wanted the report on the double.",
+                dialogueAnswer: "I'll be there on the double!",
+                synonyms: ["immediately", "right away", "as fast as possible"],
+                explanation: "This is a common, informal phrase used to indicate that something needs to be done very quickly or immediately. It is often used in a military or urgent context.",
+                ptRephrasePrompt: "Rewrite the following sentence using a Portuguese equivalent of 'on the double.'",
+                ptRephraseSentence: "O chefe queria o relatório imediatamente.",
+                tipText: "The expression 'on the double' is a military command to march at a run. Imagine soldiers running quickly to get to their destination. That’s how you should be when you are 'on the double.'",
+                ptTipText: "Essa expressão significa 'imediatamente', 'o mais rápido possível' ou 'para já'.",
+                sentenceBuilderWords: ["on", "the", "double"],
+                sentenceBuilderOrder: ["on", "the", "double"],
+                mcPrompt: "Choose the sentence that correctly uses the expression 'on the double.'",
+                mcOptions: [
+                    "a) The car was moving on the double.",
+                    "b) I'll be there on the double.",
+                    "c) We had to wait on the double."
+                ],
+                mcCorrectAnswer: "b) I'll be there on the double.",
+                rephrasePrompt: "Rewrite the following sentence using the expression 'on the double.'",
+                rephraseSentence: "He finished the task as fast as possible.",
+                rephraseCorrectAnswer: "He finished the task on the double.",
+                dialoguePrompt: "Read the dialogue and write a response using 'on the double.'",
+                dialogueContext: "<strong>Friend:</strong> 'Can you get here quickly? The movie is about to start!'",
+            }
+        ];
+
+        let currentExpression = null;
+        const librarySection = document.getElementById('library-section');
+        const contentSection = document.getElementById('content');
+        const expressionList = document.getElementById('expression-list');
+        const situationSection = document.getElementById('situation-section');
+        const answerSection = document.getElementById('answer-section');
+        const portugueseSection = document.getElementById('portuguese-section');
+        const tipSection = document.getElementById('tip-section');
+        const exercisesSection = document.getElementById('exercises-section');
+        const portugueseRephraseSection = document.getElementById('portuguese-rephrase-section');
+
+        // Back buttons
+        document.getElementById('back-to-situation-button').addEventListener('click', () => showSection(situationSection));
+        document.getElementById('back-to-answer-button').addEventListener('click', () => showSection(answerSection));
+        document.getElementById('back-to-portuguese-button').addEventListener('click', () => showSection(portugueseSection));
+        document.getElementById('back-to-tip-button').addEventListener('click', () => showSection(tipSection));
+
+        // Next buttons
+        document.getElementById('next-to-portuguese-button').addEventListener('click', () => showSection(portugueseSection));
+        document.getElementById('next-to-tip-button').addEventListener('click', () => showSection(tipSection));
+        document.getElementById('next-to-exercises-button').addEventListener('click', () => showSection(exercisesSection));
+
+        const allSections = [situationSection, answerSection, portugueseSection, tipSection, exercisesSection];
+
+        function showSection(sectionToShow) {
+            allSections.forEach(section => section.classList.add('hidden'));
+            contentSection.classList.remove('hidden');
+            librarySection.classList.add('hidden');
+            sectionToShow.classList.remove('hidden');
+        }
+
+        // Library Functionality
+        function renderExpressionButtons() {
+            expressionList.innerHTML = '';
+            expressions.forEach((expr, index) => {
+                const button = document.createElement('button');
+                button.textContent = expr.name;
+                button.className = "button-secondary px-6 py-3 rounded-full font-semibold shadow-md hover:scale-105 transform transition-transform";
+                button.addEventListener('click', () => selectExpression(index));
+                expressionList.appendChild(button);
+            });
+        }
+
+        function selectExpression(index) {
+            currentExpression = expressions[index];
+            showSection(situationSection);
+            document.getElementById('english-situation').textContent = currentExpression.englishSituation;
+            document.getElementById('portuguese-situation').textContent = currentExpression.portugueseSituation;
+
+            // Reset guess input and feedback
+            const guessInput = document.getElementById('guess-input');
+            const guessButton = document.getElementById('guess-button');
+            const guessFeedback = document.getElementById('guess-feedback');
+            guessInput.value = '';
+            guessInput.disabled = false;
+            guessButton.disabled = false;
+            guessButton.classList.remove('opacity-50', 'cursor-not-allowed');
+            guessFeedback.textContent = '';
+        }
+
+        // Back to Library buttons
+        document.querySelectorAll('.back-to-library-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                librarySection.classList.remove('hidden');
+                contentSection.classList.add('hidden');
+            });
+        });
+
+        // English Guess Functionality
+        let englishAttempts = 0;
+        document.getElementById('guess-button').addEventListener('click', () => {
+            const guessInput = document.getElementById('guess-input');
+            const guessFeedback = document.getElementById('guess-feedback');
+            const userAnswer = guessInput.value.toLowerCase().trim();
+            const correctAnswer = currentExpression.correctAnswer.toLowerCase().trim();
+
+            if (userAnswer === correctAnswer) {
+                guessFeedback.textContent = "Correct! Great job!";
+                guessFeedback.className = "mt-4 font-semibold correct-answer";
+                guessInput.disabled = true;
+                document.getElementById('guess-button').disabled = true;
+                setTimeout(() => showAnswerSection(), 1500);
+            } else {
+                englishAttempts++;
+                if (englishAttempts >= 2) {
+                    guessFeedback.textContent = `Incorrect. The correct expression is: '${currentExpression.correctAnswer}'.`;
+                    guessFeedback.className = "mt-4 font-semibold incorrect-answer";
+                    guessInput.disabled = true;
+                    document.getElementById('guess-button').disabled = true;
+                    setTimeout(() => showAnswerSection(), 1500);
+                } else {
+                    guessFeedback.textContent = `Incorrect. You have ${2 - englishAttempts} attempts left.`;
+                    guessFeedback.className = "mt-4 font-semibold incorrect-answer";
+                    guessInput.value = '';
+                }
+            }
+        });
+
+        function showAnswerSection() {
+            document.getElementById('correct-answer-text').textContent = `Correct Answer: ${currentExpression.correctAnswer.toUpperCase()}`;
+            document.getElementById('explanation-text').textContent = currentExpression.explanation;
+            
+            const synonymsList = document.getElementById('synonyms-list');
+            synonymsList.innerHTML = '';
+            currentExpression.synonyms.forEach(syn => {
+                const li = document.createElement('li');
+                li.textContent = syn;
+                synonymsList.appendChild(li);
+            });
+            showSection(answerSection);
+        }
+
+        // Portuguese Translation Functionality
+        let portugueseAttempts = 0;
+        document.getElementById('portuguese-button').addEventListener('click', () => {
+            const ptInput = document.getElementById('portuguese-input');
+            const ptFeedback = document.getElementById('portuguese-feedback');
+            const userAnswer = ptInput.value.toLowerCase().trim().replace(/[.,!?]/g, '');
+            const correctAnswers = currentExpression.portugueseCorrectAnswers.map(ans => ans.toLowerCase().trim().replace(/[.,!?]/g, ''));
+
+            if (correctAnswers.includes(userAnswer)) {
+                ptFeedback.textContent = "Correto! Muito bem!";
+                ptFeedback.className = "mt-4 font-semibold correct-answer";
+                ptInput.disabled = true;
+                document.getElementById('portuguese-button').disabled = true;
+                document.getElementById('next-to-tip-button').classList.remove('hidden');
+            } else {
+                portugueseAttempts++;
+                if (portugueseAttempts >= 2) {
+                    ptFeedback.textContent = `Incorreto. A resposta correta é: ${currentExpression.portugueseCorrectAnswers[0]}.`;
+                    ptFeedback.className = "mt-4 font-semibold incorrect-answer";
+                    ptInput.disabled = true;
+                    document.getElementById('portuguese-button').disabled = true;
+                    document.getElementById('next-to-tip-button').classList.remove('hidden');
+                } else {
+                    ptFeedback.textContent = `Incorreto. Você tem ${2 - portugueseAttempts} tentativas restantes.`;
+                    ptFeedback.className = "mt-4 font-semibold incorrect-answer";
+                    ptInput.value = '';
+                }
+            }
+        });
+        
+        // Portuguese Rephrase Check
+        document.getElementById('pt-rephrase-check').addEventListener('click', () => {
+            const rephraseInput = document.getElementById('pt-rephrase-input');
+            const feedback = document.getElementById('pt-rephrase-feedback');
+            const userAnswer = rephraseInput.value.toLowerCase().trim().replace(/[.,!?]/g, '');
+            const correctAnswer = currentExpression.ptRephraseAnswer.toLowerCase().trim().replace(/[.,!?]/g, '');
+
+            if (userAnswer === correctAnswer) {
+                feedback.textContent = "Correto!";
+                feedback.className = "mt-2 font-semibold correct-answer";
+            } else {
+                feedback.textContent = "Incorreto. Tente novamente.";
+                feedback.className = "mt-2 font-semibold incorrect-answer";
+            }
+        });
+
+        // Tip Section
+        document.getElementById('tip-section').addEventListener('transitionend', () => {
+            if (!tipSection.classList.contains('hidden')) {
+                document.getElementById('tip-text').textContent = currentExpression.tipText;
+                document.getElementById('pt-tip-text').textContent = currentExpression.ptTipText;
+            }
+        });
+
+        // Exercises Section
+        document.getElementById('exercises-section').addEventListener('transitionend', () => {
+            if (!exercisesSection.classList.contains('hidden')) {
+                renderSentenceBuilder();
+                renderMultipleChoice();
+                renderRephrase();
+                renderDialogue();
+            }
+        });
+
+        // Sentence Builder
+        let dragged = null;
+        let droppedWords = [];
+        const wordBank = document.getElementById('word-bank');
+        const dropZone = document.getElementById('drop-zone');
+        
+        function renderSentenceBuilder() {
+            wordBank.innerHTML = '';
+            dropZone.innerHTML = 'Drop words here';
+            droppedWords = [];
+            const words = [...currentExpression.sentenceBuilderWords].sort(() => Math.random() - 0.5);
+
+            words.forEach(word => {
+                const wordElement = document.createElement('div');
+                wordElement.textContent = word;
+                wordElement.className = "drag-word bg-indigo-100 text-indigo-800 px-4 py-2 rounded-full font-bold shadow-md";
+                wordElement.draggable = true;
+                wordElement.addEventListener('dragstart', (e) => {
+                    dragged = wordElement;
+                    setTimeout(() => wordElement.style.display = 'none', 0);
+                });
+                wordBank.appendChild(wordElement);
+            });
+        }
+        
+        dropZone.addEventListener('dragover', (e) => e.preventDefault());
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (dragged) {
+                if (dropZone.textContent === 'Drop words here') {
+                    dropZone.innerHTML = '';
+                }
+                const newWord = dragged.cloneNode(true);
+                newWord.style.display = 'block';
+                newWord.draggable = false;
+                newWord.classList.remove('drag-word', 'bg-indigo-100');
+                newWord.classList.add('bg-white', 'border', 'border-gray-400');
+                dropZone.appendChild(newWord);
+                droppedWords.push(newWord.textContent);
+                dragged.remove();
+                dragged = null;
+            }
+        });
+
+        document.getElementById('sentence-check').addEventListener('click', () => {
+            const feedback = document.getElementById('sentence-feedback');
+            const userSentence = droppedWords.join(' ').toLowerCase();
+            const correctSentence = currentExpression.sentenceBuilderOrder.join(' ').toLowerCase();
+            
+            if (userSentence === correctSentence) {
+                feedback.textContent = "Correct! The sentence is perfectly formed.";
+                feedback.className = "mt-2 font-semibold correct-answer";
+            } else {
+                feedback.textContent = "Incorrect. Try rearranging the words.";
+                feedback.className = "mt-2 font-semibold incorrect-answer";
+            }
+        });
+
+        // Multiple Choice
+        function renderMultipleChoice() {
+            const optionsDiv = document.getElementById('mc-options');
+            optionsDiv.innerHTML = '';
+            currentExpression.mcOptions.forEach(optionText => {
+                const button = document.createElement('button');
+                button.textContent = optionText;
+                button.className = "w-full text-left button-secondary px-4 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors";
+                optionsDiv.appendChild(button);
+                button.addEventListener('click', () => {
+                    document.querySelectorAll('#mc-options button').forEach(btn => btn.classList.remove('bg-indigo-200', 'ring-2', 'ring-indigo-400'));
+                    button.classList.add('bg-indigo-200', 'ring-2', 'ring-indigo-400');
+                });
+            });
+            document.getElementById('mc-prompt').textContent = currentExpression.mcPrompt;
+        }
+
+        document.getElementById('mc-check').addEventListener('click', () => {
+            const feedback = document.getElementById('mc-feedback');
+            const selectedButton = document.querySelector('#mc-options button.bg-indigo-200');
+            if (!selectedButton) {
+                customAlert("Please select an option first.");
+                return;
+            }
+            const userAnswer = selectedButton.textContent;
+            if (userAnswer === currentExpression.mcCorrectAnswer) {
+                feedback.textContent = "Correct! That's the right choice.";
+                feedback.className = "mt-2 font-semibold correct-answer";
+            } else {
+                feedback.textContent = "Incorrect. Try again!";
+                feedback.className = "mt-2 font-semibold incorrect-answer";
+            }
+        });
+
+        // Rephrase the Sentence
+        function renderRephrase() {
+            document.getElementById('rephrase-prompt').textContent = currentExpression.rephrasePrompt;
+            document.getElementById('rephrase-sentence').textContent = currentExpression.rephraseSentence;
+            document.getElementById('rephrase-input').value = '';
+            document.getElementById('rephrase-feedback').textContent = '';
+        }
+
+        document.getElementById('rephrase-check').addEventListener('click', () => {
+            const feedback = document.getElementById('rephrase-feedback');
+            const userAnswer = document.getElementById('rephrase-input').value.toLowerCase().trim().replace(/[.,!?]/g, '');
+            const correctAnswer = currentExpression.rephraseCorrectAnswer.toLowerCase().trim().replace(/[.,!?]/g, '');
+            
+            if (userAnswer === correctAnswer) {
+                feedback.textContent = "Correct! You rephrased it perfectly.";
+                feedback.className = "mt-2 font-semibold correct-answer";
+            } else {
+                feedback.textContent = "Incorrect. Try again!";
+                feedback.className = "mt-2 font-semibold incorrect-answer";
+            }
+        });
+
+        // Dialogue Challenge
+        function renderDialogue() {
+            document.getElementById('dialogue-prompt').textContent = currentExpression.dialoguePrompt;
+            document.getElementById('dialogue-context').innerHTML = currentExpression.dialogueContext;
+            document.getElementById('dialogue-input').value = '';
+            document.getElementById('dialogue-feedback').textContent = '';
+        }
+
+        document.getElementById('dialogue-check').addEventListener('click', () => {
+            const feedback = document.getElementById('dialogue-feedback');
+            const userAnswer = document.getElementById('dialogue-input').value.toLowerCase().trim().replace(/[.,!?]/g, '');
+            const correctAnswer = currentExpression.dialogueAnswer.toLowerCase().trim().replace(/[.,!?]/g, '');
+            
+            if (userAnswer === correctAnswer) {
+                feedback.textContent = "Correct! That's a perfect response.";
+                feedback.className = "mt-2 font-semibold correct-answer";
+            } else {
+                feedback.textContent = "Incorrect. Try again!";
+                feedback.className = "mt-2 font-semibold incorrect-answer";
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', renderExpressionButtons);
+    </script>
+</body>
+</html>
